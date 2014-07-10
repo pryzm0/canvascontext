@@ -65,146 +65,150 @@ Canvas2DContext.setup = function (thisCtx) {
       return this;
     };}(p));
   }
+};
 
-  /** Reset the context quickly.
-   */
-  Canvas2DContext.prototype.clearCanvas = function () {
-    // return this.clearRect(0, 0, this.canvas().width, this.canvas().height);
-    var c = this.canvas();
-    c.width = c.width;
-    return this;
-  };
 
-  /** Invoke layer function with keeping current drawing style state.
-   * @param {layerFn} layer function
-   * @param {...} arguments passed to the layer function
-   */
-  Canvas2DContext.prototype.layer = function (layerFn) {
-    this.save();
-    try {
-      return this.layer0.apply(this, arguments);
-    } finally {
-      this.restore();
-    }
-  };
+/** Reset the context quickly.
+ */
+Canvas2DContext.prototype.clearCanvas = function () {
+  // return this.clearRect(0, 0, this.canvas().width, this.canvas().height);
+  var c = this.canvas();
+  c.width = c.width;
+  return this;
+};
 
-  /** Invoke layer function in context of this proxy object.
-   *
-   *  // Example
-   *  (Canvas2DContext '#cnv').layer(function (label) {
-   *    this.translate(label.x, label.y).
-   *      font('11px Comic Sans').
-   *      fillText(label.text);
-   *  }, myLabel);
-   * @param {Function} layer function
-   * @param {...} arguments passed to the layer function
-   */
-  Canvas2DContext.prototype.layer0 = function (layerFn) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return layerFn.apply(this, args), this;
-  };
+/** Invoke layer function with keeping current drawing style state.
+ * @param {layerFn} layer function
+ * @param {...} arguments passed to the layer function
+ */
+Canvas2DContext.prototype.layer = function (layerFn) {
+  this.save();
+  try {
+    return this.layer0.apply(this, arguments);
+  } finally {
+    this.restore();
+  }
+};
 
-  /** Fill text, cut when text box width exceeds maxWidth.
-   * @param {String} text
-   * @param {Number} base x coordinate
-   * @param {Number} base y coordinate
-   * @param {Number} maximum text box width
-   * @param {String} tail. Defaults to ' ...'.
-   */
-  Canvas2DContext.prototype.fillTextEllipsize = function (text, x, y, maxWidth, tail) {
-    var xtext = text, len = xtext.length;
 
-    if (typeof tail === 'undefined') {
-      tail = ' ...';
-    }
+/** Invoke layer function in context of this proxy object.
+ *
+ *  // Example
+ *  (Canvas2DContext '#cnv').layer(function (label) {
+ *    this.translate(label.x, label.y).
+ *      font('11px Comic Sans').
+ *      fillText(label.text);
+ *  }, myLabel);
+ * @param {Function} layer function
+ * @param {...} arguments passed to the layer function
+ */
+Canvas2DContext.prototype.layer0 = function (layerFn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return layerFn.apply(this, args), this;
+};
 
-    while (0 < len && maxWidth < this.measureText(xtext).width) {
-      xtext = text.substr(0, --len) + tail;
-    }
 
-    if (0 < len) this.fillText(xtext, x, y, maxWidth);
+/** Fill text, cut when text box width exceeds maxWidth.
+ * @param {String} text
+ * @param {Number} base x coordinate
+ * @param {Number} base y coordinate
+ * @param {Number} maximum text box width
+ * @param {String} tail. Defaults to ' ...'.
+ */
+Canvas2DContext.prototype.fillTextEllipsize = function (text, x, y, maxWidth, tail) {
+  var xtext = text, len = xtext.length;
 
-    return this;
-  };
+  if (typeof tail === 'undefined') {
+    tail = ' ...';
+  }
 
-  /** Fill text paragraph wrapped by maximum width.
-   * @param {String} paragraph text
-   * @param {Number} base x coordinate
-   * @param {Number} base y coordinate
-   * @param {Number} maximum paragraph width
-   * @param {Number} line height
-   */
-  Canvas2DContext.prototype.fillTextWrap = function (text, x, y, maxWidth, lineHeight) {
-    var line = [], para = [], words = text.split(/\s+/);
+  while (0 < len && maxWidth < this.measureText(xtext).width) {
+    xtext = text.substr(0, --len) + tail;
+  }
 
-    while (words.length) {
-      line.push(words.shift());
+  if (0 < len) this.fillText(xtext, x, y, maxWidth);
 
-      if (maxWidth < this.measureText(line.join(' ')).width) {
-        para.push(line);
-        line = [line.pop()];
-      }
-    }
+  return this;
+};
 
-    if (line.length) {
+
+/** Fill text paragraph wrapped by maximum width.
+ * @param {String} paragraph text
+ * @param {Number} base x coordinate
+ * @param {Number} base y coordinate
+ * @param {Number} maximum paragraph width
+ * @param {Number} line height
+ */
+Canvas2DContext.prototype.fillTextWrap = function (text, x, y, maxWidth, lineHeight) {
+  var line = [], para = [], words = text.split(/\s+/);
+
+  while (words.length) {
+    line.push(words.shift());
+
+    if (maxWidth < this.measureText(line.join(' ')).width) {
       para.push(line);
+      line = [line.pop()];
     }
+  }
 
-    return this.layer(function () {
-      var k, kk, line;
+  if (line.length) {
+    para.push(line);
+  }
 
-      this.translate(x, y);
+  return this.layer(function () {
+    var k, kk, line;
 
-      for (k = 0, kk = para.length; k < kk; ++k) {
-        if ((line = para[k]).length) {
-          this.fillText(line.join(' '), 0, 0).
-          translate(0, lineHeight);
-        }
+    this.translate(x, y);
+
+    for (k = 0, kk = para.length; k < kk; ++k) {
+      if ((line = para[k]).length) {
+        this.fillText(line.join(' '), 0, 0).
+        translate(0, lineHeight);
       }
-    });
-  };
-
-  /** Draws a rounded rectangle using the current state of the canvas.
-   * If you omit the last three params, it will draw a rectangle
-   * outline with a 5 pixel border radius
-   * @param {Number} x The top left x coordinate
-   * @param {Number} y The top left y coordinate
-   * @param {Number} width The width of the rectangle
-   * @param {Number} height The height of the rectangle
-   * @param {Number} radius The corner radius. Defaults to 5;
-   * @param {Boolean} fill Whether to fill the rectangle. Defaults to false.
-   * @param {Boolean} stroke Whether to stroke the rectangle. Defaults to true.
-   */
-  Canvas2DContext.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
-    if (typeof stroke === "undefined" ) {
-      stroke = true;
     }
+  });
+};
 
-    if (typeof radius === "undefined") {
-      radius = 5;
-    }
 
-    this.beginPath().
-      moveTo(x + radius, y).
-      lineTo(x + width - radius, y).
-      quadraticCurveTo(x + width, y, x + width, y + radius).
-      lineTo(x + width, y + height - radius).
-      quadraticCurveTo(x + width, y + height, x + width - radius, y + height).
-      lineTo(x + radius, y + height).
-      quadraticCurveTo(x, y + height, x, y + height - radius).
-      lineTo(x, y + radius).
-      quadraticCurveTo(x, y, x + radius, y).
-      closePath();
+/** Draws a rounded rectangle using the current state of the canvas.
+ * If you omit the last three params, it will draw a rectangle
+ * outline with a 5 pixel border radius
+ * @param {Number} x The top left x coordinate
+ * @param {Number} y The top left y coordinate
+ * @param {Number} width The width of the rectangle
+ * @param {Number} height The height of the rectangle
+ * @param {Number} radius The corner radius. Defaults to 5;
+ * @param {Boolean} fill Whether to fill the rectangle. Defaults to false.
+ * @param {Boolean} stroke Whether to stroke the rectangle. Defaults to true.
+ */
+Canvas2DContext.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
+  if (typeof stroke === "undefined" ) {
+    stroke = true;
+  }
 
-    if (fill) {
-      this.fill();
-    }
+  if (typeof radius === "undefined") {
+    radius = 5;
+  }
 
-    if (stroke) {
-      this.stroke();
-    }
+  this.beginPath().
+    moveTo(x + radius, y).
+    lineTo(x + width - radius, y).
+    quadraticCurveTo(x + width, y, x + width, y + radius).
+    lineTo(x + width, y + height - radius).
+    quadraticCurveTo(x + width, y + height, x + width - radius, y + height).
+    lineTo(x + radius, y + height).
+    quadraticCurveTo(x, y + height, x, y + height - radius).
+    lineTo(x, y + radius).
+    quadraticCurveTo(x, y, x + radius, y).
+    closePath();
 
-    return this;
-  };
+  if (fill) {
+    this.fill();
+  }
 
+  if (stroke) {
+    this.stroke();
+  }
+
+  return this;
 };

@@ -1,0 +1,24 @@
+{
+  "name": "canvascontext",
+  "version": "1.0.0",
+  "homepage": "https://github.com/pryzm0/canvascontext",
+  "authors": [
+    "pryzm0 <pryzm0@gmail.com>"
+  ],
+  "description": "Canvas 2D Context wrapper.",
+  "main": "src/canvas-context.js",
+  "keywords": [
+    "canvas",
+    "wrapper",
+    "method",
+    "chaining"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
